@@ -126,7 +126,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%}
   <div id="dot-row"><div class="dot active" data-i="0"></div><div class="dot " data-i="1"></div><div class="dot " data-i="2"></div></div>
   <button class="nav-btn" id="btn-next">NEXT ►</button>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" id="threejs"></script>
 <script>
 'use strict';
 const canvas=document.getElementById('c');
@@ -226,22 +226,24 @@ window.addEventListener('touchend',e=>{
   if(dx>50&&current>0)goTo(current-1,-1);
 });
 
-// Hide loader when everything is ready
 function hideLoader(){
   const loader = document.getElementById('loader');
+  if(!loader) return;
   loader.classList.add('hidden');
-  setTimeout(()=>loader.remove(), 900);
+  setTimeout(()=>{ if(loader.parentNode) loader.parentNode.removeChild(loader); }, 900);
 }
 
-// Wait for fonts + all images + Three.js
-const fontPromise = document.fonts.ready;
-const imgPromises = Array.from(document.images).map(img =>
-  img.complete ? Promise.resolve() : new Promise(res=>{ img.onload=res; img.onerror=res; })
-);
-// Three.js is loaded synchronously via script tag so just wait for DOM + fonts + imgs
-Promise.all([fontPromise, ...imgPromises]).then(()=>{
-  // Small extra delay to let Three.js first frame render
-  setTimeout(hideLoader, 380);
+// Wait for window.onload (guarantees ALL resources including CDN scripts are done)
+// then wait for fonts, then hide loader
+window.addEventListener('load', ()=>{
+  document.fonts.ready.then(()=>{
+    // One extra frame to let Three.js render first frame
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        hideLoader();
+      });
+    });
+  });
 });
 
 </script>
