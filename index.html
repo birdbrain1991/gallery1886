@@ -136,6 +136,23 @@ canvas{position:fixed;inset:0;width:100%;height:100%}
   <div class="loader-text">LOADING</div>
   <div class="loader-bar"></div>
 </div>
+<script>
+function hideLoader(){
+  var l=document.getElementById('loader');
+  if(!l||l._gone) return;
+  l._gone=true;
+  l.classList.add('hidden');
+  setTimeout(function(){if(l.parentNode)l.parentNode.removeChild(l);},900);
+}
+// Unconditional fallback — fires no matter what
+setTimeout(hideLoader, 2500);
+window.addEventListener('pageshow', function(){
+  document.fonts.ready.then(function(){
+    requestAnimationFrame(function(){requestAnimationFrame(function(){ hideLoader(); });});
+  });
+});
+window.addEventListener('load', function(){ setTimeout(hideLoader, 200); }, {once:true});
+</script>
 <canvas id="c"></canvas>
 <div id="scanlines"></div>
 <div id="status"><span>BLACK SULPHUR :: 1886</span><span id="fig-counter">01 / 06</span></div>
@@ -390,20 +407,7 @@ window.addEventListener('DOMContentLoaded',function(){
 });
 
 // ── LOADER ──
-function hideLoader(){
-  const l=document.getElementById('loader');
-  if(!l||l._gone) return;
-  l._gone=true;
-  l.classList.add('hidden');
-  setTimeout(()=>{if(l.parentNode)l.parentNode.removeChild(l);},900);
-}
-setTimeout(hideLoader,3500);
-window.addEventListener('pageshow',()=>{
-  document.fonts.ready.then(()=>{
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{hideLoader();}));
-  });
-  window.addEventListener('load',()=>{setTimeout(hideLoader,300);},{once:true});
-});
+// loader handled by early script above
 </script>
 </body>
 </html>
