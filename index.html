@@ -225,11 +225,11 @@ const bgRenderer = new THREE.WebGLRenderer({canvas: bgCanvas, antialias:false});
 bgRenderer.setPixelRatio(1);
 bgRenderer.setSize(window.innerWidth, window.innerHeight);
 bgRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-bgRenderer.toneMappingExposure = 0.7;
+bgRenderer.toneMappingExposure = 1.4;
 
 const bgScene = new THREE.Scene();
-bgScene.background = new THREE.Color(0x0b0912);
-bgScene.fog = new THREE.FogExp2(0x0b0912, 0.022);
+bgScene.background = new THREE.Color(0x0d0e0a);
+bgScene.fog = new THREE.FogExp2(0x0d0e0a, 0.020);
 
 const bgCam = new THREE.PerspectiveCamera(44, window.innerWidth/window.innerHeight, 0.5, 200);
 bgCam.position.set(0, 36, 26);
@@ -242,19 +242,19 @@ window.addEventListener('resize', () => {
 });
 
 // ── LIGHTS — simple, no shadows ──
-bgScene.add(new THREE.AmbientLight(0x1a1428, 1.2));
-const moonLight = new THREE.DirectionalLight(0xb0a8d0, 0.6);
+bgScene.add(new THREE.AmbientLight(0x2a2418, 2.4));
+const moonLight = new THREE.DirectionalLight(0xd8c8a0, 1.6);
 moonLight.position.set(-15, 30, 8);
 bgScene.add(moonLight);
 
 // ── MATERIALS ──
-const mStone  = new THREE.MeshLambertMaterial({color:0x1c1828});
-const mLight  = new THREE.MeshLambertMaterial({color:0x28223a});
-const mRoof   = new THREE.MeshLambertMaterial({color:0x131020});
-const mCopper = new THREE.MeshLambertMaterial({color:0x1a2e28, emissive:0x081410});
-const mWin    = new THREE.MeshLambertMaterial({color:0xc08030, emissive:0x7a4a10});
-const mSpire  = new THREE.MeshLambertMaterial({color:0x1a1428});
-const mGround = new THREE.MeshLambertMaterial({color:0x0e0b18});
+const mStone  = new THREE.MeshLambertMaterial({color:0x4a3c2c});
+const mLight  = new THREE.MeshLambertMaterial({color:0x6e5a3c});
+const mRoof   = new THREE.MeshLambertMaterial({color:0x5a3020});
+const mCopper = new THREE.MeshLambertMaterial({color:0x1e3c30, emissive:0x0a1e18});
+const mWin    = new THREE.MeshLambertMaterial({color:0xd4941a, emissive:0x8a5808});
+const mSpire  = new THREE.MeshLambertMaterial({color:0x7a4e2a});
+const mGround = new THREE.MeshLambertMaterial({color:0x1c1c14});
 
 // ── GROUND ──
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(140,140), mGround);
@@ -339,6 +339,29 @@ zepG.add(gond);
 zepG.position.set(-40, 20, -4);
 bgScene.add(zepG);
 
+// Zeppelin 2 — smaller, higher, different lane
+const zepG2 = new THREE.Group();
+const hullMesh2 = new THREE.Mesh(new THREE.SphereGeometry(1,12,6), new THREE.MeshLambertMaterial({color:0x6a5e38}));
+hullMesh2.scale.set(3.4,0.85,0.85);
+zepG2.add(hullMesh2);
+const gond2 = new THREE.Mesh(new THREE.BoxGeometry(1.8,0.5,0.6), new THREE.MeshLambertMaterial({color:0x2e2416}));
+gond2.position.y = -0.9;
+zepG2.add(gond2);
+zepG2.position.set(20, 25, -14);
+zepG2.rotation.y = -0.2;
+bgScene.add(zepG2);
+
+// Zeppelin 3 — larger, low, in background
+const zepG3 = new THREE.Group();
+const hullMesh3 = new THREE.Mesh(new THREE.SphereGeometry(1,12,6), new THREE.MeshLambertMaterial({color:0x7a6a44}));
+hullMesh3.scale.set(5.0,1.1,1.1);
+zepG3.add(hullMesh3);
+const gond3 = new THREE.Mesh(new THREE.BoxGeometry(2.8,0.7,0.8), new THREE.MeshLambertMaterial({color:0x332816}));
+gond3.position.y = -1.3;
+zepG3.add(gond3);
+zepG3.position.set(-10, 18, -22);
+bgScene.add(zepG3);
+
 // ── ANIMATION ──
 const bgClock = new THREE.Clock();
 let bgT = 0;
@@ -347,6 +370,12 @@ bgRenderer.setAnimationLoop(() => {
   zepG.position.x += 1.2 * dt;
   if(zepG.position.x > 50) zepG.position.x = -50;
   zepG.position.y = 20 + Math.sin(bgT*0.28)*0.7;
+  zepG2.position.x += 0.7 * dt;
+  if(zepG2.position.x > 55) zepG2.position.x = -45;
+  zepG2.position.y = 25 + Math.sin(bgT*0.22+1.5)*0.5;
+  zepG3.position.x -= 0.5 * dt;
+  if(zepG3.position.x < -55) zepG3.position.x = 45;
+  zepG3.position.y = 18 + Math.sin(bgT*0.18+3.0)*0.6;
   bgCam.position.x = Math.sin(bgT*0.035)*1.2;
   bgCam.lookAt(Math.sin(bgT*0.035)*0.4, 0, -10);
   bgRenderer.render(bgScene, bgCam);
