@@ -251,7 +251,9 @@ function mkBuilding(x, z, w, d, floors, style) {
   const fh = 1.2, h = floors * fh;
 
   // Body
-  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mStone), {position: new THREE.Vector3(0,h/2,0)}));
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mStone);
+  body.position.y = h/2;
+  g.add(body);
 
   // Windows — only front face, merged into one mesh for speed
   if (floors > 2) {
@@ -311,9 +313,9 @@ bgScene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color:0xc8c0b0,size
 
 // ── ZEPPELIN — simple version ──
 const zepG = new THREE.Group();
-const hullGeo = new THREE.SphereGeometry(1,12,6);
-hullGeo.scale(4.2,1,1);
-zepG.add(new THREE.Mesh(hullGeo, new THREE.MeshLambertMaterial({color:0x8a7848})));
+const hullMesh = new THREE.Mesh(new THREE.SphereGeometry(1,12,6), new THREE.MeshLambertMaterial({color:0x8a7848}));
+hullMesh.scale.set(4.2,1,1);
+zepG.add(hullMesh);
 const gond = new THREE.Mesh(new THREE.BoxGeometry(2.2,0.6,0.7), new THREE.MeshLambertMaterial({color:0x3a2e1c}));
 gond.position.y = -1.1;
 zepG.add(gond);
