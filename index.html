@@ -336,7 +336,7 @@ zepG.add(hullMesh);
 const gond = new THREE.Mesh(new THREE.BoxGeometry(2.2,0.6,0.7), new THREE.MeshLambertMaterial({color:0x3a2e1c}));
 gond.position.y = -1.1;
 zepG.add(gond);
-zepG.position.set(-40, 20, -4);
+zepG.position.set(-40, 16, 4);
 bgScene.add(zepG);
 
 // Zeppelin 2 — smaller, higher, different lane
@@ -347,7 +347,7 @@ zepG2.add(hullMesh2);
 const gond2 = new THREE.Mesh(new THREE.BoxGeometry(1.8,0.5,0.6), new THREE.MeshLambertMaterial({color:0x2e2416}));
 gond2.position.y = -0.9;
 zepG2.add(gond2);
-zepG2.position.set(20, 25, -14);
+zepG2.position.set(-10, 18, -2);
 zepG2.rotation.y = -0.2;
 bgScene.add(zepG2);
 
@@ -359,7 +359,7 @@ zepG3.add(hullMesh3);
 const gond3 = new THREE.Mesh(new THREE.BoxGeometry(2.8,0.7,0.8), new THREE.MeshLambertMaterial({color:0x332816}));
 gond3.position.y = -1.3;
 zepG3.add(gond3);
-zepG3.position.set(-10, 18, -22);
+zepG3.position.set(15, 14, -8);
 bgScene.add(zepG3);
 
 // ── ANIMATION ──
@@ -376,8 +376,7 @@ bgRenderer.setAnimationLoop(() => {
   zepG3.position.x -= 0.5 * dt;
   if(zepG3.position.x < -55) zepG3.position.x = 45;
   zepG3.position.y = 18 + Math.sin(bgT*0.18+3.0)*0.6;
-  bgCam.position.x = Math.sin(bgT*0.035)*1.2;
-  bgCam.lookAt(Math.sin(bgT*0.035)*0.4, 0, -10);
+  // camera fixed
   bgRenderer.render(bgScene, bgCam);
 }); } catch(e){ console.error("BG error:",e); }
 
