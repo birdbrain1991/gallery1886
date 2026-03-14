@@ -204,317 +204,134 @@ canvas{position:fixed;inset:0;width:100%;height:100%}
 
 // ── STEAMPUNK VIENNA 1900 — THREE.JS AERIAL VIEW ──
 const bgCanvas = document.getElementById('c');
-
-const bgRenderer = new THREE.WebGLRenderer({canvas: bgCanvas, antialias:true, alpha:false});
-bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+const bgRenderer = new THREE.WebGLRenderer({canvas: bgCanvas, antialias:false});
+bgRenderer.setPixelRatio(1);
 bgRenderer.setSize(window.innerWidth, window.innerHeight);
-bgRenderer.shadowMap.enabled = true;
-bgRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 bgRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-bgRenderer.toneMappingExposure = 0.65;
+bgRenderer.toneMappingExposure = 0.7;
 
 const bgScene = new THREE.Scene();
-bgScene.background = new THREE.Color(0x0c0914);
-bgScene.fog = new THREE.FogExp2(0x0c0914, 0.018);
+bgScene.background = new THREE.Color(0x0b0912);
+bgScene.fog = new THREE.FogExp2(0x0b0912, 0.022);
 
-// ── CAMERA — angled top-down like tilted satellite photo ──
-const bgCam = new THREE.PerspectiveCamera(42, window.innerWidth/window.innerHeight, 0.5, 300);
-bgCam.position.set(0, 38, 28);
-bgCam.lookAt(0, 0, -8);
+const bgCam = new THREE.PerspectiveCamera(44, window.innerWidth/window.innerHeight, 0.5, 200);
+bgCam.position.set(0, 36, 26);
+bgCam.lookAt(0, 0, -10);
 
 window.addEventListener('resize', () => {
-  bgCam.aspect = window.innerWidth / window.innerHeight;
+  bgCam.aspect = window.innerWidth/window.innerHeight;
   bgCam.updateProjectionMatrix();
   bgRenderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ── MATERIALS ──
-const matStone = new THREE.MeshLambertMaterial({color: 0x1a1520});
-const matStoneLight = new THREE.MeshLambertMaterial({color: 0x252030});
-const matRoof  = new THREE.MeshLambertMaterial({color: 0x14111c});
-const matCopper= new THREE.MeshLambertMaterial({color: 0x1a2e28, emissive: 0x0a1a14});
-const matWindow= new THREE.MeshLambertMaterial({color: 0xc89040, emissive: 0x8a5820});
-const matStreet= new THREE.MeshLambertMaterial({color: 0x100d18});
-const matSpire = new THREE.MeshLambertMaterial({color: 0x20182c});
-
-// ── LIGHTS ──
-bgScene.add(new THREE.AmbientLight(0x1a1428, 0.9));
-
-// Moon light — cold blue-white from above
-const moonLight = new THREE.DirectionalLight(0xc8c0e0, 0.7);
-moonLight.position.set(-20, 40, 10);
-moonLight.castShadow = true;
-moonLight.shadow.mapSize.set(1024, 1024);
-moonLight.shadow.camera.near = 1;
-moonLight.shadow.camera.far = 120;
-moonLight.shadow.camera.left = -60;
-moonLight.shadow.camera.right = 60;
-moonLight.shadow.camera.top = 60;
-moonLight.shadow.camera.bottom = -60;
+// ── LIGHTS — simple, no shadows ──
+bgScene.add(new THREE.AmbientLight(0x1a1428, 1.2));
+const moonLight = new THREE.DirectionalLight(0xb0a8d0, 0.6);
+moonLight.position.set(-15, 30, 8);
 bgScene.add(moonLight);
 
-// Warm amber street lamps — scattered
-const lampPositions = [
-  [-8,0,-5], [4,0,-12], [-14,0,-18], [10,0,-8],
-  [-4,0,-25], [16,0,-20], [-18,0,-10], [6,0,-30],
-  [20,0,-14], [-10,0,-32], [14,0,-28],
-];
-lampPositions.forEach(([x,y,z]) => {
-  const lamp = new THREE.PointLight(0xd4880a, 1.8, 14);
-  lamp.position.set(x, 3.5, z);
-  bgScene.add(lamp);
-});
+// ── MATERIALS ──
+const mStone  = new THREE.MeshLambertMaterial({color:0x1c1828});
+const mLight  = new THREE.MeshLambertMaterial({color:0x28223a});
+const mRoof   = new THREE.MeshLambertMaterial({color:0x131020});
+const mCopper = new THREE.MeshLambertMaterial({color:0x1a2e28, emissive:0x081410});
+const mWin    = new THREE.MeshLambertMaterial({color:0xc08030, emissive:0x7a4a10});
+const mSpire  = new THREE.MeshLambertMaterial({color:0x1a1428});
+const mGround = new THREE.MeshLambertMaterial({color:0x0e0b18});
 
-// ── GROUND PLANE — cobblestone streets ──
-const groundGeo = new THREE.PlaneGeometry(160, 160, 30, 30);
-const ground = new THREE.Mesh(groundGeo, matStreet);
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
+// ── GROUND ──
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(140,140), mGround);
+ground.rotation.x = -Math.PI/2;
 bgScene.add(ground);
-
-// Street grid lines
-const lineMat = new THREE.LineBasicMaterial({color: 0x1e1828, transparent: true, opacity: 0.5});
-for (let i = -5; i <= 5; i++) {
-  const g1 = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(i*8, 0.05, -80), new THREE.Vector3(i*8, 0.05, 80)
-  ]);
-  const g2 = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(-80, 0.05, i*8), new THREE.Vector3(80, 0.05, i*8)
-  ]);
-  bgScene.add(new THREE.Line(g1, lineMat));
-  bgScene.add(new THREE.Line(g2, lineMat));
-}
 
 // ── BUILDING FACTORY ──
 function mkBuilding(x, z, w, d, floors, style) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, z);
-  const floorH = 1.2;
-  const h = floors * floorH;
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  const fh = 1.2, h = floors * fh;
 
-  // Main body
-  const bodyGeo = new THREE.BoxGeometry(w, h, d);
-  const body = new THREE.Mesh(bodyGeo, matStone);
-  body.position.y = h / 2;
-  body.castShadow = true;
-  body.receiveShadow = true;
-  group.add(body);
+  // Body
+  g.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mStone), {position: new THREE.Vector3(0,h/2,0)}));
 
-  // Window rows on sides
+  // Windows — only front face, merged into one mesh for speed
   if (floors > 2) {
-    const winW = 0.28, winH = 0.38, winD = 0.06;
-    const winsPerRow = Math.max(1, Math.floor(w / 1.1) - 1);
-    const spacing = w / (winsPerRow + 1);
-    for (let row = 0; row < floors - 1; row++) {
-      for (let col = 0; col < winsPerRow; col++) {
-        const winGeo = new THREE.BoxGeometry(winW, winH, winD);
-        const win = new THREE.Mesh(winGeo, matWindow);
-        const wx = -w/2 + spacing * (col + 1);
-        const wy = floorH * row + floorH * 0.55;
-        win.position.set(wx, wy, d/2 + 0.01);
-        win.castShadow = false;
-        group.add(win);
-        // Back face windows too
-        const win2 = win.clone();
-        win2.position.z = -d/2 - 0.01;
-        group.add(win2);
+    const cols = Math.max(1, Math.floor(w/1.2));
+    const spacing = w/(cols+1);
+    for (let row=0; row<floors-1; row++) {
+      for (let col=0; col<cols; col++) {
+        const wm = new THREE.Mesh(new THREE.BoxGeometry(0.25,0.32,0.05), mWin);
+        wm.position.set(-w/2+spacing*(col+1), fh*row+fh*0.55, d/2+0.01);
+        g.add(wm);
       }
     }
   }
 
-  // Style-specific roofs
-  if (style === 'mansard') {
-    // Mansard roof — Viennese Historicism
-    const roofGeo = new THREE.BoxGeometry(w*1.04, h*0.12, d*1.04);
-    const roof = new THREE.Mesh(roofGeo, matRoof);
-    roof.position.y = h + h*0.06;
-    roof.castShadow = true;
-    group.add(roof);
-    // Dormer windows
-    const dCount = Math.max(1, Math.floor(w/2));
-    for (let i=0; i<dCount; i++) {
-      const dGeo = new THREE.BoxGeometry(0.5, 0.5, 0.3);
-      const d2 = new THREE.Mesh(dGeo, matStoneLight);
-      d2.position.set(-w/2 + (i+0.5)*(w/dCount), h + h*0.14, d/2 - 0.1);
-      group.add(d2);
-    }
-  } else if (style === 'dome') {
-    // Copper dome
-    const domeGeo = new THREE.SphereGeometry(Math.min(w,d)*0.38, 12, 8, 0, Math.PI*2, 0, Math.PI/2);
-    const dome = new THREE.Mesh(domeGeo, matCopper);
+  // Roof styles
+  if (style === 'dome') {
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(Math.min(w,d)*0.35,10,6,0,Math.PI*2,0,Math.PI/2), mCopper);
     dome.position.y = h;
-    dome.castShadow = true;
-    group.add(dome);
-    // Lantern on top
-    const lanternGeo = new THREE.CylinderGeometry(0.15, 0.2, 0.6, 8);
-    const lantern = new THREE.Mesh(lanternGeo, matCopper);
-    lantern.position.y = h + Math.min(w,d)*0.38;
-    group.add(lantern);
+    g.add(dome);
   } else if (style === 'spire') {
-    // Gothic spire
-    const baseGeo = new THREE.BoxGeometry(w*0.4, h*0.35, d*0.4);
-    const base = new THREE.Mesh(baseGeo, matStoneLight);
-    base.position.y = h + h*0.175;
-    base.castShadow = true;
-    group.add(base);
-    const spireGeo = new THREE.ConeGeometry(Math.min(w,d)*0.22, h*0.7, 6);
-    const spire = new THREE.Mesh(spireGeo, matSpire);
-    spire.position.y = h + h*0.35 + h*0.35;
-    spire.castShadow = true;
-    group.add(spire);
-    // Side pinnacles
-    [[-w*0.35, -d*0.35], [w*0.35,-d*0.35], [-w*0.35,d*0.35], [w*0.35,d*0.35]].forEach(([px,pz])=>{
-      const pinnGeo = new THREE.ConeGeometry(0.15, h*0.3, 4);
-      const pinn = new THREE.Mesh(pinnGeo, matSpire);
-      pinn.position.set(px, h + h*0.15, pz);
-      group.add(pinn);
-    });
+    const base = new THREE.Mesh(new THREE.BoxGeometry(w*0.35,h*0.3,d*0.35), mLight);
+    base.position.y = h+h*0.15;
+    g.add(base);
+    const spire = new THREE.Mesh(new THREE.ConeGeometry(Math.min(w,d)*0.2,h*0.65,6), mSpire);
+    spire.position.y = h+h*0.3+h*0.325;
+    g.add(spire);
+  } else if (style === 'mansard') {
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(w*1.05,h*0.1,d*1.05), mRoof);
+    roof.position.y = h+h*0.05;
+    g.add(roof);
   } else {
-    // Flat with cornice
-    const corniceGeo = new THREE.BoxGeometry(w*1.06, h*0.06, d*1.06);
-    const cornice = new THREE.Mesh(corniceGeo, matStoneLight);
-    cornice.position.y = h + h*0.03;
-    cornice.castShadow = true;
-    group.add(cornice);
+    const cornice = new THREE.Mesh(new THREE.BoxGeometry(w*1.06,h*0.05,d*1.06), mLight);
+    cornice.position.y = h+h*0.025;
+    g.add(cornice);
   }
 
-  bgScene.add(group);
-  return group;
+  bgScene.add(g);
 }
 
-// ── CITY LAYOUT — hand-placed blocks for organic feel ──
-// Format: x, z, width, depth, floors, style
-const cityData = [
-  // Foreground left cluster
-  [-22, 2,  5, 4, 4, 'mansard'],
-  [-16, 0,  4, 3, 6, 'spire'],
-  [-12, 3,  6, 4, 3, 'mansard'],
-  [-19,-4,  3, 3, 5, 'flat'],
-  [-25,-2,  4, 5, 3, 'dome'],
+// ── CITY — reduced to 18 buildings ──
+[
+  [-20, 2,  5,4,4,'mansard'], [-14, 0, 4,3,6,'spire'],  [-10, 3, 5,4,3,'flat'],
+  [-24,-3,  4,5,3,'dome'],    [12,  2, 5,4,4,'mansard'], [20, -2, 4,3,5,'flat'],
+  [16, -5,  5,5,3,'dome'],    [22,  1, 3,3,6,'spire'],
+  [-5, -8,  7,5,7,'dome'],    [4,  -6, 5,5,5,'spire'],   [0, -4,  4,4,4,'mansard'],
+  [9, -12,  5,4,4,'flat'],    [-12,-10,5,5,4,'dome'],
+  [-8,-20,  7,5,5,'dome'],    [4, -22, 5,4,6,'spire'],   [-18,-22,4,4,3,'flat'],
+  [12,-20,  4,5,4,'mansard'], [-2,-28, 6,5,4,'dome'],
+].forEach(([x,z,w,d,f,s]) => mkBuilding(x,z,w,d,f,s));
 
-  // Foreground right cluster
-  [14,  2,  5, 4, 4, 'mansard'],
-  [20,  0,  4, 3, 5, 'flat'],
-  [18, -4,  6, 5, 3, 'dome'],
-  [24, -2,  3, 3, 6, 'spire'],
-  [12,  4,  4, 4, 3, 'flat'],
+// ── STARS ──
+const sGeo = new THREE.BufferGeometry();
+const sPos = [];
+for(let i=0;i<200;i++) sPos.push((Math.random()-.5)*200, 25+Math.random()*50, (Math.random()-.5)*200);
+sGeo.setAttribute('position', new THREE.Float32BufferAttribute(sPos,3));
+bgScene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({color:0xc8c0b0,size:0.3,transparent:true,opacity:0.65})));
 
-  // Mid centre — grand buildings
-  [-6, -8,  7, 5, 7, 'dome'],
-  [4,  -6,  5, 5, 5, 'spire'],
-  [-1, -4,  4, 4, 4, 'mansard'],
-  [8,  -10, 6, 4, 4, 'flat'],
-  [-10,-10, 5, 5, 5, 'dome'],
-
-  // Background left
-  [-28,-14, 5, 4, 3, 'flat'],
-  [-22,-16, 4, 3, 4, 'spire'],
-  [-16,-18, 6, 5, 3, 'mansard'],
-  [-32,-10, 3, 3, 3, 'flat'],
-
-  // Background right
-  [26, -12, 5, 4, 3, 'mansard'],
-  [22, -18, 4, 3, 4, 'dome'],
-  [30, -16, 3, 4, 3, 'flat'],
-  [18, -20, 6, 5, 4, 'spire'],
-
-  // Far background
-  [-8, -22, 8, 6, 5, 'dome'],
-  [4,  -24, 5, 4, 6, 'spire'],
-  [-18,-24, 4, 4, 3, 'flat'],
-  [14, -22, 4, 5, 4, 'mansard'],
-  [-4, -30, 6, 5, 4, 'dome'],
-  [8,  -30, 4, 4, 5, 'spire'],
-];
-
-cityData.forEach(([x,z,w,d,f,s]) => mkBuilding(x, z, w, d, f, s));
-
-// ── ZEPPELIN ──
-const zepGroup = new THREE.Group();
-// Hull
-const hullGeo = new THREE.SphereGeometry(1, 16, 8);
-hullGeo.scale(4.5, 1, 1);
-const hullMat = new THREE.MeshLambertMaterial({color: 0x8a7850});
-const hull = new THREE.Mesh(new THREE.CapsuleGeometry ? new THREE.BoxGeometry(9,2,2) : hullGeo, hullMat);
-// Use ellipsoid via scaled sphere
-const hullMesh = new THREE.Mesh(hullGeo, hullMat);
-hullMesh.castShadow = true;
-zepGroup.add(hullMesh);
-// Gondola
-const gondGeo = new THREE.BoxGeometry(2.5, 0.7, 0.8);
-const gondMat = new THREE.MeshLambertMaterial({color: 0x3c3020});
-const gondola = new THREE.Mesh(gondGeo, gondMat);
-gondola.position.y = -1.2;
-zepGroup.add(gondola);
-// Gondola windows
-const gWinMat = new THREE.MeshLambertMaterial({color:0xd49030, emissive:0x8a5010});
-[-0.7,0,0.7].forEach(wx => {
-  const gw = new THREE.Mesh(new THREE.BoxGeometry(0.35,0.25,0.05), gWinMat);
-  gw.position.set(wx,-1.15,0.43);
-  zepGroup.add(gw);
-});
-// Tail fins
-const finMat = new THREE.MeshLambertMaterial({color:0x6a5c3a});
-[[0,0.6,1.8,0],[0,-0.3,1.8,0],[0.8,0,1.8,Math.PI/2],[-0.8,0,1.8,Math.PI/2]].forEach(([fx,fy,fz,fr])=>{
-  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.1,1.2,1.0), finMat);
-  fin.position.set(fx,fy,fz);
-  fin.rotation.z = fr;
-  zepGroup.add(fin);
-});
-zepGroup.position.set(-35, 22, -5);
-zepGroup.rotation.y = 0.15;
-bgScene.add(zepGroup);
-
-// ── STARS (particles) ──
-const starGeo = new THREE.BufferGeometry();
-const starPos = [];
-for (let i=0; i<300; i++) {
-  starPos.push((Math.random()-0.5)*300, 30+Math.random()*60, (Math.random()-0.5)*300);
-}
-starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
-const starMat = new THREE.PointsMaterial({color:0xd0c8b8, size:0.35, transparent:true, opacity:0.7});
-bgScene.add(new THREE.Points(starGeo, starMat));
-
-// ── CLOUD PLANES ──
-const cloudMat = new THREE.MeshBasicMaterial({color:0x2a2235, transparent:true, opacity:0.55, side:THREE.DoubleSide, depthWrite:false});
-const cloudData = [
-  [-20, 28, -10, 18, 6],
-  [15,  26, -20, 22, 7],
-  [-8,  30,  -5, 14, 5],
-  [28,  29, -15, 16, 6],
-  [-30, 27, -25, 20, 7],
-];
-cloudData.forEach(([cx,cy,cz,cw,ch]) => {
-  const cg = new THREE.PlaneGeometry(cw, ch);
-  const cm = new THREE.Mesh(cg, cloudMat.clone());
-  cm.position.set(cx,cy,cz);
-  cm.rotation.x = -Math.PI/2 + 0.2;
-  bgScene.add(cm);
-});
+// ── ZEPPELIN — simple version ──
+const zepG = new THREE.Group();
+const hullGeo = new THREE.SphereGeometry(1,12,6);
+hullGeo.scale(4.2,1,1);
+zepG.add(new THREE.Mesh(hullGeo, new THREE.MeshLambertMaterial({color:0x8a7848})));
+const gond = new THREE.Mesh(new THREE.BoxGeometry(2.2,0.6,0.7), new THREE.MeshLambertMaterial({color:0x3a2e1c}));
+gond.position.y = -1.1;
+zepG.add(gond);
+zepG.position.set(-40, 20, -4);
+bgScene.add(zepG);
 
 // ── ANIMATION ──
 const bgClock = new THREE.Clock();
 let bgT = 0;
-
 bgRenderer.setAnimationLoop(() => {
-  const dt = bgClock.getDelta();
-  bgT += dt;
-
-  // Zeppelin slow drift
-  zepGroup.position.x = -35 + bgT * 1.4;
-  if (zepGroup.position.x > 55) zepGroup.position.x = -45;
-  zepGroup.position.y = 22 + Math.sin(bgT * 0.3) * 0.8;
-
-  // Gentle camera sway
-  bgCam.position.x = Math.sin(bgT * 0.04) * 1.5;
-  bgCam.lookAt(Math.sin(bgT*0.04)*0.5, 0, -8);
-
-  // Lamp flicker — very subtle
-  bgScene.children.forEach(c => {
-    if (c.isPointLight) {
-      c.intensity = 1.8 + Math.sin(bgT * (2.1 + c.position.x * 0.1)) * 0.12;
-    }
-  });
+  const dt = bgClock.getDelta(); bgT += dt;
+  zepG.position.x += 1.2 * dt;
+  if(zepG.position.x > 50) zepG.position.x = -50;
+  zepG.position.y = 20 + Math.sin(bgT*0.28)*0.7;
+  bgCam.position.x = Math.sin(bgT*0.035)*1.2;
+  bgCam.lookAt(Math.sin(bgT*0.035)*0.4, 0, -10);
+  bgRenderer.render(bgScene, bgCam);
+});
 
   bgRenderer.render(bgScene, bgCam);
 });
