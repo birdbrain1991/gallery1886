@@ -494,8 +494,11 @@ function loop() {
   layers.forEach((layer, li) => {
     layerOff[li] += layer.spd;
     layer.b.forEach(b => {
-      const bx = ((b.x - layerOff[li]) % 1.3 - 0.05) * W;
-      const by = baseY - b.baseOff*H + li*H*0.025;
+      const rawX = (b.x - layerOff[li]);
+      // wrap so buildings always fill screen
+      const wrappedX = ((rawX % 1.35) + 1.35) % 1.35 - 0.05;
+      const bx = wrappedX * W;
+      const by = baseY - layer.baseOff*H + li*H*0.025;
       drawBuilding(b, bx, by, layer.fill, layer.acc, layer.winA);
     });
   });
