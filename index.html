@@ -219,7 +219,7 @@ window.addEventListener('load', function(){ setTimeout(hideLoader, 200); }, {onc
 <script>
 'use strict';
 
-// ── STEAMPUNK VIENNA 1900 — THREE.JS AERIAL VIEW ──
+try { // ── STEAMPUNK VIENNA 1900 — THREE.JS AERIAL VIEW ──
 const bgCanvas = document.getElementById('c');
 const bgRenderer = new THREE.WebGLRenderer({canvas: bgCanvas, antialias:false});
 bgRenderer.setPixelRatio(1);
@@ -350,10 +350,7 @@ bgRenderer.setAnimationLoop(() => {
   bgCam.position.x = Math.sin(bgT*0.035)*1.2;
   bgCam.lookAt(Math.sin(bgT*0.035)*0.4, 0, -10);
   bgRenderer.render(bgScene, bgCam);
-});
-
-  bgRenderer.render(bgScene, bgCam);
-});
+}); } catch(e){ console.error("BG error:",e); }
 
 // ── CAROUSEL ──
 const cards=Array.from(document.querySelectorAll('.figure-card'));
